@@ -14,7 +14,7 @@ long seed;
 
 
 #define dt 0.06
-#define timesimulation 200000
+#define timesimulation 80000
 //
 #include "Randomnumber.h"
 
@@ -283,22 +283,22 @@ void startpointers(){
   }
 }
 
-void ComputeSynpases(){
+void ComputeSynpases(){//i think we are just resetting any old values
   for(int i=0;i<numEcells;i++){EESynInputAMPA[i]=0.0;
     EESynInputNMDA[i]=0.0;IESynInput[i]=0.0;}
   for(int i=0;i<numIcells;i++){EISynInputAMPA[i]=0.0;
     EISynInputNMDA[i]=0.0;IISynInput[i]=0.0;}
   int jj=0;
   /*excitatory*/
-  for(int i=0;i<numEcells;i++){
+  for(int i=0;i<numEcells;i++){ //for all excitatory cells
     jj=0;
-    while(Wee[i][jj]<numEcells){
+    while(Wee[i][jj]<numEcells){ //we are adding all the activations from all jj excitatory cells onto cell i?
       EESynInputAMPA[Wee[i][jj]]+=sAmpaE[i];//sEAMPA[i];
       EESynInputNMDA[Wee[i][jj]]+=sNmdaE[i];//sENMDA[i];
       jj++;
     }
     jj=0;
-    while(Wei[i][jj]<numIcells){
+    while(Wei[i][jj]<numIcells){ //same thing adding all excitatory input onto inhibitory cells
       EISynInputAMPA[Wei[i][jj]]+=sAmpaE[i];//sEAMPA[i];
       EISynInputNMDA[Wei[i][jj]]+=sNmdaE[i];//sENMDA[i];
       jj++;

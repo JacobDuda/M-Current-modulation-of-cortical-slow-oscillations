@@ -139,12 +139,17 @@ double hchannelHill(double variable, double memV){
 double syn_sigmoid(double memV){
   return 1./(1.+exp(-0.5*(memV-20.)));
 }
+// this function is called multiple more times...
 void allderivsE(double *y, double *dy, double IsynSoma, double IsynDend, int index, double gKNa_cond, double gKCa_cond,  double factorM, double factorH, int key_h){
 
 	const double phi_eq = Rpump*naEq*naEq*naEq/(naEq*naEq*naEq+kp3);
 
+  // the pow function raises the first argument to the power of the second
   double NaChannel=0.0;
 	NaChannel=pow(Na_steadystate_m_E(y[0]),3)*y[1]*gNa_E*0.5*0.3*(y[0]-55.0);
+  //you are raising some voltage dependent gating variable m to the third power
+  //then multiplying by h_Na_E (not clear what this is)
+  //then you are multiplying by the driving voltage (or whatever it is called, the voltage diff)
 
 	double KChannel=0.0;
 	KChannel=y[2]*y[2]*y[2]*y[2]*gK_E*0.5*0.3*(y[0]+100.0);
@@ -188,11 +193,15 @@ void allderivsE(double *y, double *dy, double IsynSoma, double IsynDend, int ind
   double MChannel=0.0;
   MChannel=gM*0.5*0.3*y[11]*(y[0]+100);
 
+  // we are going to have to track down every mention of gH maybe?
+  //depends on what happens with this HChannel
   double Hchannel=0.0;
   Hchannel=key_h*gH*0.5*0.7*y[12]*(y[5]+45.0);
 
-  const double iCsoma = 1./0.5/0.3;
+  const double iCsoma = 1./0.5/0.3; //wtf is this
   const double iCdend = 1./0.5/0.7;
+  //looks like we are summing all of the various currents together to get the current for the soma and dendrite
+  //we are also adding the current that is coming from synaptic inputs (see last entries), I believe these are calculated before this function is called
   double iSoma = -LeakChannelS-NaChannel-KChannel-0.9*AChannel-0.7*KSChannel-0.56*KNaChannel-factorM*0.083*MChannel-gsd[index]*(y[0]-y[5])+IsynSoma;
 
   double iDend = -LeakChannelD-CaChannel-1.*NaPChannel-1.*ARChannel-1.*KCaChannel-factorH*0.0115*Hchannel-gsd[index]*(y[5]-y[0])+IsynDend;
@@ -222,6 +231,8 @@ void allderivsE(double *y, double *dy, double IsynSoma, double IsynDend, int ind
 }
 
 /**/
+//idk understand how this method works... I think it is like eulers method but maybe taking multiple smaller steps?
+// it is a fourth order Runge-Kutta method, you take the derivitive at the beggining, end, and first and third quarters of the interval, and average them (look it up)
 void rk4E(double curr, double cur, int ind, double gKNa_cond, double gKCa_cond,  double keyKNa, double keyKCa, double key_h){
 	int i;
 	double hh=dt*0.5;
@@ -238,23 +249,26 @@ void rk4E(double curr, double cur, int ind, double gKNa_cond, double gKCa_cond, 
 	}
 	allderivsE(yt,dyt,curr,cur,ind, gKNa_cond, gKCa_cond, keyKNa, keyKCa,key_h);
 	for (i=0;i<nVarsE;i++)
-		varsE[i] += h6*(dVarsE[i]+dyt[i]+2.0*dym[i]);
+		varsE[i] += h6*(dVarsE[i]+dyt[i]+2.0*dym[i]); //this is the actual averaging of the values
 }
 /**/
+// this is the function originally called in main
 void rungeKutta4E(double timesim, int index, double currExt1, double currExt2, double gKNa_cond, double gKCa_cond, double keyKNa, double keyKCa, double key_h){
-	varsE[0]=y[0];
-	varsE[1]=y[1];
-	varsE[2]=y[2];
-  varsE[3]=y[3];
-  varsE[4]=y[4];
-  varsE[5]=y[5];
-  varsE[6]=y[6];
-  varsE[7]=y[7];
-  varsE[8]=y[8];
-  varsE[9]=y[9];
-  varsE[10]=y[10];
-  varsE[11]=y[11];
-  varsE[12]=y[12];
+  // this y vector is from the main function, idk how it got here...
+	varsE[0]=y[0]; //memV_SomaE
+	varsE[1]=y[1]; //h_Na_E
+	varsE[2]=y[2]; //n_K_E
+  varsE[3]=y[3]; //h_A_E
+  varsE[4]=y[4]; //m_KS_E
+  varsE[5]=y[5]; //memV_DendE
+  varsE[6]=y[6]; //conc_Ca_E
+  varsE[7]=y[7]; //conc_Na_E
+  varsE[8]=y[8]; //sAmpaE
+  varsE[9]=y[9]; //sNmdaE
+  varsE[10]=y[10]; //xNmdaE
+  varsE[11]=y[11]; //mcurrent
+  varsE[12]=y[12]; //hcurrent
+  // note, I think dVarsE holds the derivitive of the varibles in VarsE, or how much they change each step
 	allderivsE(varsE,dVarsE,currExt1,currExt2,index, gKNa_cond, gKCa_cond, keyKNa, keyKCa, key_h);
   rk4E(currExt1,currExt2,index, gKNa_cond, gKCa_cond, keyKNa, keyKCa,  key_h);
 	y[0]=varsE[0];
