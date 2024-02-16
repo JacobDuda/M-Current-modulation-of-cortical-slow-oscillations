@@ -234,27 +234,27 @@ void allderivsE(double *y, double *dy, double IsynSoma, double IsynDend, int ind
 /**/
 //idk understand how this method works... I think it is like eulers method but maybe taking multiple smaller steps?
 // it is a fourth order Runge-Kutta method, you take the derivitive at the beggining, end, and first and third quarters of the interval, and average them (look it up)
-void rk4E(double curr, double cur, int ind, double gKNa_cond, double gKCa_cond, double keyKNa, double keyHCN, double keyKCa, double key_h){
+void rk4E(double curr, double cur, int ind, double gKNa_cond, double gKCa_cond,  double keyKNa, double keyKCa, double key_h){
 	int i;
 	double hh=dt*0.5;
 	double h6=dt*0.166666666666666667;
 	for (i=0;i<nVarsE;i++)
 		yt[i]=varsE[i]+hh*dVarsE[i];
-	allderivsE(yt,dyt,curr,cur,ind, gKNa_cond, gKCa_cond, keyKNa, keyKCa,keyHCN,key_h);
+	allderivsE(yt,dyt,curr,cur,ind, gKNa_cond, gKCa_cond, keyKNa, keyKCa,key_h);
 	for (i=0;i<nVarsE;i++)
 		yt[i]=varsE[i]+hh*dyt[i];
-	allderivsE(yt,dyt,curr,cur,ind, gKNa_cond, gKCa_cond, keyKNa, keyKCa,keyHCN,key_h);
+	allderivsE(yt,dyt,curr,cur,ind, gKNa_cond, gKCa_cond, keyKNa, keyKCa,key_h);
 	for (i=0;i<nVarsE;i++) {
 		yt[i]=varsE[i]+dt*dym[i];
 		dym[i] += dyt[i];
 	}
-	allderivsE(yt,dyt,curr,cur,ind, gKNa_cond, gKCa_cond, keyKNa, keyKCa,keyHCN,key_h);
+	allderivsE(yt,dyt,curr,cur,ind, gKNa_cond, gKCa_cond, keyKNa, keyKCa,key_h);
 	for (i=0;i<nVarsE;i++)
 		varsE[i] += h6*(dVarsE[i]+dyt[i]+2.0*dym[i]); //this is the actual averaging of the values
 }
 /**/
 // this is the function originally called in main
-void rungeKutta4E(double timesim, int index, double currExt1, double currExt2, double gKNa_cond, double gKCa_cond, double keyKNa, double keyHCN, double keyKCa, double key_h){
+void rungeKutta4E(double timesim, int index, double currExt1, double currExt2, double gKNa_cond, double gKCa_cond, double keyKNa, double keyKCa, double key_h){
   // this y vector is from the main function, idk how it got here...
 	varsE[0]=y[0]; //memV_SomaE
 	varsE[1]=y[1]; //h_Na_E, i think these have to be activation gates
@@ -270,8 +270,8 @@ void rungeKutta4E(double timesim, int index, double currExt1, double currExt2, d
   varsE[11]=y[11]; //mcurrent
   varsE[12]=y[12]; //hcurrent
   // note, I think dVarsE holds the derivitive of the varibles in VarsE, or how much they change each step
-	allderivsE(varsE,dVarsE,currExt1,currExt2,index, gKNa_cond, gKCa_cond, keyKNa, keyHCN, keyKCa, key_h); //I don't understand how to feed variables into functions in C, 
-  rk4E(currExt1,currExt2,index, gKNa_cond, gKCa_cond, keyKNa, keyKCa, keyHCN, key_h);
+	allderivsE(varsE,dVarsE,currExt1,currExt2,index, gKNa_cond, gKCa_cond, keyKNa, keyKCa, key_h); //I don't understand how to feed variables into functions in C, 
+  rk4E(currExt1,currExt2,index, gKNa_cond, gKCa_cond, keyKNa, keyKCa,  key_h);
 	y[0]=varsE[0];
 	y[1]=varsE[1];
 	y[2]=varsE[2];

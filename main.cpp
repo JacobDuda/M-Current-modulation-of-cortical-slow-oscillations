@@ -152,7 +152,7 @@ int main (int argc, char *argv[]){
           for(int ii=0;ii<300;ii++){
             if(j==neuronsH[ii]) key_h=1; // this is checking if neuron[j] was randomly given H_channels earlier I think
           }
-    /**/  rungeKutta4E(currtimesimu,j,currtosoma,currtodend, gKNa_conductance, gKCa_conductance, factorM, factorH, 1.0, key_h); //we are passing the new factorH variable into this function....
+    /**/  rungeKutta4E(currtimesimu,j,currtosoma,currtodend, gKNa_conductance, gKCa_conductance, factorM, 1.0, key_h); //we are passing the new factorH variable into this function....
 
           /*Implementing the local synchrony*/
           // wth is this doing - I think this is aligning activity early in the network st you actually see co-ordinated firing but I am not sure
