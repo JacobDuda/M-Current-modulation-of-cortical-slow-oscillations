@@ -10,16 +10,18 @@ using namespace std;
 
 
 
-
+// argc is the number of elements being passed into the function from the command line, argv is the vector of arguments
 int main (int argc, char *argv[]){
 
 
 
-  double transient_samples=10000.0; 
-  double factorM=0.;
+  double transient_samples=10000.0; //almost positive these are the number of time steps simulated before data is stored, warm up time essentially
+  double factorM=0.; //M-current block [0-1]
+  double factorN=0.; //NMDAR block [0-1]
+  double factorH=0.; //HCN1 block [0-1]
 
   /*&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&*/
-  /*&&*/if(argc != 3){
+  /*&&*/if(argc != 5){ //used to be if !=3 and we added 2 so i set it to 5... hope that works...
 	/*&&*/	cout << "#########-ERROR-########" << endl;
 	/*&&*/	cout << "# Give 2 paramenters as input:" << endl;
 	/*&&*/	cout << "# 1) Percentage factor for M current (betw 0-1) " << endl;
@@ -28,8 +30,10 @@ int main (int argc, char *argv[]){
 	/*&&*/	cout << "########################" << endl;
 	/*&&*/	return 1;
 	/*&&*/}
-  factorM=(double) atof(argv[1]);
-  seed=(long) atoi(argv[2]);
+  factorM=(double) atof(argv[1]); //atof means string to double (basically a float I think)
+  factorN=(double) atof(argv[2]);
+  factorH=(double) atof(argv[3]);
+  seed=(long) atoi(argv[4]); //atoi means string to int
 
   /*&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&*/
   const double KNa_percentage= 1.0; /*1st argument - Conductance for IKCa */
@@ -91,11 +95,11 @@ int main (int argc, char *argv[]){
   Outfile4=new char[500];
   Outfile5=new char[500];
 
-  sprintf(Outfile,"Raster_factorM_%.3lf_seed%ld.txt",factorM,seed1);
-  sprintf(Outfile2,"LFP_factorM_%.3lf_seed%ld.txt",factorM,seed1);
-  sprintf(Outfile3,"NEURONS_factorM_%.3lf_seed%ld.txt",factorM,seed1);
-  sprintf(Outfile4,"FR_GLOBAL_factorM_%.3lf_seed%ld.txt",factorM,seed1);
-  sprintf(Outfile5,"Synchrony__factorM_%.3lf_seed%ld.txt",factorM,seed1);
+  sprintf(Outfile,"Raster_factorM_%.3lf_factorN%.3LF_factorH%.3LF.txt",factorM,factorN,factorH);
+  sprintf(Outfile2,"LFP_factorM_%.3lf_factorN%.3LF_factorH%.3LF.txt",factorM,factorN,factorH);
+  sprintf(Outfile3,"NEURONS_factorM_%.3lf_factorN%.3LF_factorH%.3LF.txt",factorM,factorN,factorH);
+  sprintf(Outfile4,"FR_GLOBAL_factorM_%.3lf_factorN%.3LF_factorH%.3LF.txt",factorM,factorN,factorH);
+  sprintf(Outfile5,"Synchrony__factorM_%.3lf_factorN%.3LF_factorH%.3LF.txt",factorM,factorN,factorH);
 
 
   outf = fopen(Outfile,"w");
@@ -126,7 +130,7 @@ int main (int argc, char *argv[]){
     /*Excitatory looping over time - EXC DYNAMICS*/
     /**/for(int j=0;j<numEcells;j++){ //for i in number of cells 
     /**/  double eCondAmpa=gEE_A*EESynInputAMPA[j]; // AMBA and GABA conductances are not voltage dependent, NMDA conductance is
-    /**/  double eCondNMDA=gEE_N*EESynInputNMDA[j]/(1.0 + 0.2801*exp(-0.062*memV_DendE[j]));
+    /**/  double eCondNMDA=gEE_N*factorN*EESynInputNMDA[j]/(1.0 + 0.2801*exp(-0.062*memV_DendE[j])); //this line now contains the new variable, factorN representing the percentage NMDAR block
     /**/  double iCondGABA=gIE*IESynInput[j];
     /**/  double currtodend=(eCondAmpa+eCondNMDA)*(vSynGlu-memV_DendE[j]); //the current to every dendrite is the conductances of the AMPA and NMDA receptors multiplied by their reversal potential compared to current Vmem
     /**/  double currtosoma=iCondGABA*(vSynGABA-memV_SomaE[j]); //same thing as above, but the GABA cells are landing on the soma
@@ -148,10 +152,10 @@ int main (int argc, char *argv[]){
           for(int ii=0;ii<300;ii++){
             if(j==neuronsH[ii]) key_h=1; // this is checking if neuron[j] was randomly given H_channels earlier I think
           }
-    /**/  rungeKutta4E(currtimesimu,j,currtosoma,currtodend, gKNa_conductance, gKCa_conductance, factorM, 1.0, key_h);
+    /**/  rungeKutta4E(currtimesimu,j,currtosoma,currtodend, gKNa_conductance, gKCa_conductance, factorM, factorH, 1.0, key_h); //we are passing the new factorH variable into this function....
 
           /*Implementing the local synchrony*/
-          // wth is this doing
+          // wth is this doing - I think this is aligning activity early in the network st you actually see co-ordinated firing but I am not sure
           if(t>transient_samples){ //transient samples are the number of steps the systems simulates before data collection (warm up)
             if(j>=256 and j<768){
               for(int ii=0;ii<number_sync_cells;ii++){
@@ -216,7 +220,7 @@ int main (int argc, char *argv[]){
     /*Inhibitory looping over time - EXC DYNAMICS*/
     /**/for(int j=0;j<numIcells;j++){
     /**/  double eCondAmpa=gEI_A*EISynInputAMPA[j];
-    /**/  double eCondNMDA=gEI_N*EISynInputNMDA[j]/(1.0 + 0.2801*exp(-0.062*memV_SomaI[j]));
+    /**/  double eCondNMDA=gEI_N*factorN*EISynInputNMDA[j]/(1.0 + 0.2801*exp(-0.062*memV_SomaI[j])); //again, we are adding the factorN blockage variable
     /**/  double iCondGABA=gII*IISynInput[j];
     /**/  double currtodend=(eCondAmpa+eCondNMDA)*(vSynGlu-memV_SomaI[j]);
     /**/  double currtosoma=iCondGABA*(vSynGABA-memV_SomaI[j]);
