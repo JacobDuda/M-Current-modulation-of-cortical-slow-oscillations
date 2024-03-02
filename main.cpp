@@ -17,9 +17,14 @@ int main (int argc, char *argv[]){
 
   double transient_samples=10000.0; 
   double factorM=0.;
+  double factorH=0.;
+  double factorN=0.;
+  int id = 0;
+
+
 
   /*&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&*/
-  /*&&*/if(argc != 3){
+  /*&&*/if(argc != 6){
 	/*&&*/	cout << "#########-ERROR-########" << endl;
 	/*&&*/	cout << "# Give 2 paramenters as input:" << endl;
 	/*&&*/	cout << "# 1) Percentage factor for M current (betw 0-1) " << endl;
@@ -29,7 +34,11 @@ int main (int argc, char *argv[]){
 	/*&&*/	return 1;
 	/*&&*/}
   factorM=(double) atof(argv[1]);
-  seed=(long) atoi(argv[2]);
+  factorH=(double) atof(argv[2]);
+  factorN=(double) atof(argv[3]);
+  seed=(long) atoi(argv[4]);
+  id=(int) atoi(argv[5]);
+
 
   /*&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&*/
   const double KNa_percentage= 1.0; /*1st argument - Conductance for IKCa */
@@ -91,11 +100,11 @@ int main (int argc, char *argv[]){
   Outfile4=new char[500];
   Outfile5=new char[500];
 
-  sprintf(Outfile,"Raster_factorM_%.3lf_seed%ld.ts",factorM,seed1);
-  sprintf(Outfile2,"LFP_factorM_%.3lf_seed%ld.ts",factorM,seed1);
-  sprintf(Outfile3,"NEURONS_factorM_%.3lf_seed%ld.ts",factorM,seed1);
-  sprintf(Outfile4,"FR_GLOBAL_factorM_%.3lf_seed%ld.ts",factorM,seed1);
-  sprintf(Outfile5,"Synchrony__factorM_%.3lf_seed%ld.ts",factorM,seed1);
+  sprintf(Outfile,"Raster_%ld.txt",id);
+  sprintf(Outfile2,"LFP_%ld.txt",id);
+  sprintf(Outfile3,"NEURONS_%ld.txt",id);
+  sprintf(Outfile4,"FR_GLOBAL_%ld.txt",id);
+  sprintf(Outfile5,"Synchrony_%ld.txt",id);
 
 
   outf = fopen(Outfile,"w");
@@ -125,7 +134,7 @@ int main (int argc, char *argv[]){
     /*Excitatory looping over time - EXC DYNAMICS*/
     /**/for(int j=0;j<numEcells;j++){
     /**/  double eCondAmpa=gEE_A*EESynInputAMPA[j];
-    /**/  double eCondNMDA=gEE_N*EESynInputNMDA[j]/(1.0 + 0.2801*exp(-0.062*memV_DendE[j]));
+    /**/  double eCondNMDA=gEE_N*factorN*EESynInputNMDA[j]/(1.0 + 0.2801*exp(-0.062*memV_DendE[j]));
     /**/  double iCondGABA=gIE*IESynInput[j];
     /**/  double currtodend=(eCondAmpa+eCondNMDA)*(vSynGlu-memV_DendE[j]);
     /**/  double currtosoma=iCondGABA*(vSynGABA-memV_SomaE[j]);
@@ -147,7 +156,7 @@ int main (int argc, char *argv[]){
           for(int ii=0;ii<300;ii++){
             if(j==neuronsH[ii]) key_h=1;
           }
-    /**/  rungeKutta4E(currtimesimu,j,currtosoma,currtodend, gKNa_conductance, gKCa_conductance, factorM, 1.0, key_h);
+    /**/  rungeKutta4E(currtimesimu,j,currtosoma,currtodend, gKNa_conductance, gKCa_conductance, factorM, factorH, key_h); 
 
           /*Implementing the local synchrony*/
 
