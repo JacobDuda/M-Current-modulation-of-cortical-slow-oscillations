@@ -25,9 +25,14 @@ Hvals = [0.7,0.8,0.9,1]
 Nvals = [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7]
 
 #this array will contain all the combinations we will run through
-cs = np.zeros((64,4))
+cs = np.zeros((128,4))
 #loop through all possible combinations
 counter = 0
+
+
+
+
+
 for i in range(4):
     for j in range(4):
         for k in range(8):
@@ -35,7 +40,7 @@ for i in range(4):
             counter += 1
 
 
-for c in cs[42:]:
+for c in cs[62:]:
     command  = r"./exec "+str(c[0])+" "+str(c[1])+" "+str(c[2])+ " 123456 "+str(int(c[3]))
     print("running "+command)
     results = subprocess.call(command)
