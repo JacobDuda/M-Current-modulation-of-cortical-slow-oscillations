@@ -1,2 +1,0 @@
-#Global_variance Local_variance Synchronization Parameter
-3.517473	41.725801	0.290344

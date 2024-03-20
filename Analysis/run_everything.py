@@ -19,6 +19,7 @@ for i in range(4):
 '''
 
 #code used for fine search
+'''
 #these are all the values that we will test the parameters at
 Mvals = [0,0.1,0.2,0.3]
 Hvals = [0.7,0.8,0.9,1]
@@ -28,9 +29,6 @@ Nvals = [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7]
 cs = np.zeros((128,4))
 #loop through all possible combinations
 counter = 0
-
-
-
 
 
 for i in range(4):
@@ -45,7 +43,21 @@ for c in cs[62:]:
     print("running "+command)
     results = subprocess.call(command)
     print("Finished "+str(c[3]+1)+" simulations...")
+'''
 
-    
+#code used for individual parameter exploration
+vals = np.arange(0,1.1,0.1)
+
+cs = np.zeros((11,4))
+
+for i in range(11):
+    cs[i] = np.array((1,vals[i],1,i))
+
+for c in cs:
+    command  = str("./exec "+str(np.round(c[0],1))+" "+str(c[1])+" "+str(c[2])+ " 123456 "+str(int(c[3])))
+    print("running "+command)
+    results = subprocess.call(command)
+    print("Finished "+str(c[3]+1)+" simulations...")
+
 
 
