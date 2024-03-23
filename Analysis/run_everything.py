@@ -51,10 +51,10 @@ vals = np.arange(0,1.1,0.1)
 cs = np.zeros((11,4))
 
 for i in range(11):
-    cs[i] = np.array((1,vals[i],1,i))
+    cs[i] = np.array((1,1,vals[i],i))
 
 for c in cs:
-    command  = str("./exec "+str(np.round(c[0],1))+" "+str(c[1])+" "+str(c[2])+ " 123456 "+str(int(c[3])))
+    command  = str("./exec "+str(np.round(c[0],1))+" "+str(np.round(c[1],1))+" "+str(np.round(c[2],1))+ " 123456 "+str(int(c[3])))
     print("running "+command)
     results = subprocess.call(command)
     print("Finished "+str(c[3]+1)+" simulations...")
